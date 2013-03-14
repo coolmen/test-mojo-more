@@ -1,12 +1,18 @@
 package Test::Mojo::More;
 
-use 5.10;
-use strict;
-use warnings FATAL => 'all';
+use Mojo::Base 'Test::Mojo';
+
+use Mojolicious::Sessions;
+use Mojo::Util qw(b64_decode b64_encode);
+use Mojo::JSON;
+use Mojo::JSON::Pointer;
+
+use Mojolicious::Controller;
+use Mojo::Message::Request;
 
 =head1 NAME
 
-Test::Mojo::More - The great new Test::Mojo::More!
+Test::Mojo::More - Test::Mojo and More.
 
 =head1 VERSION
 
@@ -14,7 +20,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = 0.001_000;
 
 
 =head1 SYNOPSIS
@@ -35,19 +41,93 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 C<flash_is>
 
 =cut
 
-sub function1 {
+sub flash_is {
+	my ($self, $key, $value, $desc) = @_;
+	my ( $flash, $path ) = $self->_prepare_key($key); 
+	$flash = $self->_flash($flash);
+	$desc ||= "exact match for flash '$key'";
+	return $self->_test(
+		'is_deeply',
+		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		$value,
+		$desc
+	);
 }
 
-=head2 function2
-
-=cut
-
-sub function2 {
+sub flash_isnt {
+	my ($self, $key, $value, $desc) = @_;
+	my ( $flash, $path ) = $self->_prepare_key($key); 
+	$flash = $self->_flash($flash);
+	$desc ||= "exact match for flash '$key'";
+	return $self->_test(
+		'is_deeply',
+		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		$value,
+		$desc
+	);
 }
+
+sub flash_has {
+	my ($self, $key, $value, $desc) = @_;
+	my ( $flash, $path ) = $self->_prepare_key($key); 
+	$flash = $self->_flash($flash);
+	$desc ||= "flash has value for JSON Pointer \"$key\"";
+	return $self->_test(
+		'ok',
+		!!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		$desc
+	);
+}
+
+sub flash_hasnt {
+	my ($self, $key, $value, $desc) = @_;
+	my ( $flash, $path ) = $self->_prepare_key($key); 
+	$flash = $self->_flash($flash);
+	$desc ||= "flash has no value for JSON Pointer \"$key\"";
+	return $self->_test(
+		'ok',
+		!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		$desc
+	);	
+}
+
+sub _prepare_key {
+	shift;
+	return ( '', '' ) unless @_;
+	my ( undef, $flash, $path ) = split '\/', +shift, 3;
+	( $flash, $path )
+}
+
+sub _session {
+	shift->_controller->session
+}
+
+sub _flash {
+	return $_[0]->_controller->flash( $_[1] ) if @_ == 2;
+	{}
+}
+
+
+sub _controller {
+	my $self = shift;
+
+	# Build res cookies
+	my $req = new Mojo::Message::Request;
+	$req->cookies( join "; ", map{ $_->name ."=". $_->value } @{$self->tx->res->cookies} );
+
+	# Make session
+	my $c = Mojolicious::Controller->new;
+	$c->tx->req( $req );
+	$self->app->handler( $c );
+	$self->app->sessions->load( $c );
+
+	$c;
+}
+
 
 =head1 AUTHOR
 
@@ -127,3 +207,4 @@ OTHER DEALINGS IN THE SOFTWARE.
 =cut
 
 1; # End of Test::Mojo::More
+
