@@ -12,7 +12,7 @@ use Mojo::Message::Request;
 
 =head1 NAME
 
-Test::Mojo::More - Test::Mojo and More.
+Test::Mojo::More - Test::Mojo and more.
 
 =head1 VERSION
 
@@ -43,13 +43,18 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head2 C<flash_is>
 
+  $t = $t->flash_is( '/error', { message => 'error message' } );
+  $t = $t->flash_is( '/error/message', 'error message' );
+
+Check flash the given JSON Pointer with Mojo::JSON::Pointer
+
 =cut
 
 sub flash_is {
 	my ($self, $key, $value, $desc) = @_;
 	my ( $flash, $path ) = $self->_prepare_key($key); 
 	$flash = $self->_flash($flash);
-	$desc ||= "exact match for flash '$key'";
+	$desc ||= "flash exact match for JSON Pointer \"$key\"";
 	return $self->_test(
 		'is_deeply',
 		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
@@ -58,18 +63,16 @@ sub flash_is {
 	);
 }
 
-sub flash_isnt {
-	my ($self, $key, $value, $desc) = @_;
-	my ( $flash, $path ) = $self->_prepare_key($key); 
-	$flash = $self->_flash($flash);
-	$desc ||= "exact match for flash '$key'";
-	return $self->_test(
-		'is_deeply',
-		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
-		$value,
-		$desc
-	);
-}
+
+=head2 C<flash_has>
+
+  $t = $t->flash_has( '/error' );
+  $t = $t->flash_has( '/error/message' );
+
+Check if flash contains a value that can be identified using
+the given JSON Pointer with Mojo::JSON::Pointer
+
+=cut
 
 sub flash_has {
 	my ($self, $key, $value, $desc) = @_;
@@ -83,6 +86,17 @@ sub flash_has {
 	);
 }
 
+
+=head2 C<flash_hasnt>
+
+  $t = $t->flash_hasnt( '/error' );
+  $t = $t->flash_hasnt( '/error/message' );
+
+Check if flash no contains a value that can be identified using
+the given JSON Pointer with Mojo::JSON::Pointer
+
+=cut
+
 sub flash_hasnt {
 	my ($self, $key, $value, $desc) = @_;
 	my ( $flash, $path ) = $self->_prepare_key($key); 
@@ -94,6 +108,8 @@ sub flash_hasnt {
 		$desc
 	);	
 }
+
+
 
 sub _prepare_key {
 	shift;
@@ -110,7 +126,6 @@ sub _flash {
 	return $_[0]->_controller->flash( $_[1] ) if @_ == 2;
 	{}
 }
-
 
 sub _controller {
 	my $self = shift;
