@@ -46,7 +46,7 @@ if you don't export anything, such as for a purely object-oriented module.
   $t = $t->flash_is( '/error', { message => 'error message' } );
   $t = $t->flash_is( '/error/message', 'error message' );
 
-Check flash the given JSON Pointer with Mojo::JSON::Pointer
+Check flash the given JSON Pointer with Mojo::JSON::Pointer.
 
 =cut
 
@@ -54,12 +54,11 @@ sub flash_is {
 	my ($self, $key, $value, $desc) = @_;
 	my ( $flash, $path ) = $self->_prepare_key($key); 
 	$flash = $self->_flash($flash);
-	$desc ||= "flash exact match for JSON Pointer \"$key\"";
 	return $self->_test(
 		'is_deeply',
 		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
 		$value,
-		$desc
+		$desc || "flash exact match for JSON Pointer \"$key\"",
 	);
 }
 
@@ -70,7 +69,7 @@ sub flash_is {
   $t = $t->flash_has( '/error/message' );
 
 Check if flash contains a value that can be identified using
-the given JSON Pointer with Mojo::JSON::Pointer
+the given JSON Pointer with Mojo::JSON::Pointer.
 
 =cut
 
@@ -78,11 +77,10 @@ sub flash_has {
 	my ($self, $key, $value, $desc) = @_;
 	my ( $flash, $path ) = $self->_prepare_key($key); 
 	$flash = $self->_flash($flash);
-	$desc ||= "flash has value for JSON Pointer \"$key\"";
 	return $self->_test(
 		'ok',
 		!!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
-		$desc
+		$desc || "flash has value for JSON Pointer \"$key\"",
 	);
 }
 
@@ -101,12 +99,67 @@ sub flash_hasnt {
 	my ($self, $key, $value, $desc) = @_;
 	my ( $flash, $path ) = $self->_prepare_key($key); 
 	$flash = $self->_flash($flash);
-	$desc ||= "flash has no value for JSON Pointer \"$key\"";
 	return $self->_test(
 		'ok',
 		!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
-		$desc
+		$desc || "flash has no value for JSON Pointer \"$key\""
 	);	
+}
+
+
+
+=head2 C<cookie_has>
+
+  $t = $t->cookie_has( 'error' );
+
+Check if cookie contains a cookie %)
+
+=cut
+
+sub cookie_has {
+	my ($self, $cookie, $desc) = @_;
+	return $self->_test(
+		'ok',
+		!!$self->_cookie( $cookie ),
+		$desc || "has cookie \"$cookie\"",
+	);
+}
+
+
+=head2 C<cookie_hasnt>
+
+  $t = $t->cookie_hasnt( 'error' );
+
+Check if cookie no contains a cookie.
+
+=cut
+
+sub cookie_hasnt {
+	my ($self, $cookie, $desc) = @_;
+	return $self->_test(
+		'ok',
+		!$self->_cookie( $cookie ),
+		$desc || "has no cookie \"$cookie\"",
+	);
+}
+
+
+=head2 C<cookie_like>
+
+  $t = $t->cookie_like( 'error', 'fatal error' );
+
+Check if cookie for similar match.
+
+=cut
+
+sub cookie_like {
+	my ($self, $cookie, $regex, $desc) = @_;
+	return $self->_test(
+		'like',
+		$self->_cookie( $cookie ),
+		$regex,
+		$desc || "cookie \"$cookie\" is similar",
+	);
 }
 
 
@@ -127,6 +180,10 @@ sub _flash {
 	{}
 }
 
+sub _cookie {
+	return $_[0]->_controller->cookie( $_[1] );
+}
+
 sub _controller {
 	my $self = shift;
 
@@ -137,7 +194,9 @@ sub _controller {
 	# Make session
 	my $c = Mojolicious::Controller->new;
 	$c->tx->req( $req );
-	$self->app->handler( $c );
+	# XXX
+	$c->stash->{'mojo.secret'} //= $self->app->secret;
+#	$self->app->handler( $c );
 	$self->app->sessions->load( $c );
 
 	$c;
