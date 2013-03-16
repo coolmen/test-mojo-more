@@ -1,4 +1,4 @@
 Test::Mojo::More
 ================
 
-Test::Mojo::More - Test::Mojo and More.
+Test::Mojo::More - Test::Mojo and more.
