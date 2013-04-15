@@ -20,26 +20,61 @@ Version 0.01
 
 =cut
 
-our $VERSION = 0.001_000;
+our $VERSION = 0.02;
 
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+  use Test::More;
+  use Test::Mojo::More;
+  
+  my $t = new Test::Mojo::More 'MyApp';
+  
+  $t->post_ok('/account/login/', form => {
+    login => 'false',
+    pass  => 123,
+  })
+    ->status_is(302)
+    ->flash_is( '/error/login' => 'Error login.' )
+    ->cookie_hasnt( 'user_id' );
 
-Perhaps a little code snippet.
+  $t->post_ok('account/login/', form => {
+    login => 'true',
+    pass  => 123,
+  })
+    ->status_is(302)
+    ->flash_hasnt( '/errror' )
+    ->cookie_has( 'user_id' );
 
-    use Test::Mojo::More;
+  done_testing;
 
-    my $foo = Test::Mojo::More->new();
-    ...
 
-=head1 EXPORT
+=head1 DESCRIPTION
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+L<Test::Mojo::More> is an extension for the L<Test::Mojo> which allows
+you to test L<Mojo> and L<Mojolicious> applications.
 
-=head1 SUBROUTINES/METHODS
+
+=head1 ATTRIBUTES
+
+L<Test::Mojo::More>  inherits all attributed from L<Test::Mojo> and inplements
+the following new ones.
+
+=head2  C<dom>
+
+   @a = $t->dom->find('.menu li a');
+
+Currect DOM from transaction.
+
+=cut
+
+sub dom { shift->tx->res->dom };
+
+
+=head1 METHODS
+
+L<Test::Mojo::More>  inherits all method from L<Test::Mojo> and inplements
+the following new ones.
 
 =head2 C<flash_is>
 
@@ -112,7 +147,7 @@ sub flash_hasnt {
 
   $t = $t->cookie_has( 'error' );
 
-Check if cookie contains a cookie %)
+Check if cookie contains a cracker.
 
 =cut
 
@@ -134,6 +169,7 @@ Check if cookie no contains a cookie.
 
 =cut
 
+# Polly wants a cracker
 sub cookie_hasnt {
 	my ($self, $cookie, $desc) = @_;
 	return $self->_test(
@@ -203,51 +239,13 @@ sub _controller {
 }
 
 
+=head1 SEE ALSO
+
+L<Test::Mojo>, L<Test::Mojo::Session>
+
 =head1 AUTHOR
 
 coolmen, C<< <coolmen78 at gmail.com> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-test-mojo-more at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Mojo-More>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Test::Mojo::More
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mojo-More>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Test-Mojo-More>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Test-Mojo-More>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Test-Mojo-More/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 
