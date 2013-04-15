@@ -1,73 +1,113 @@
-Test-Mojo-More
+NAME
+    Test::Mojo::More - Test::Mojo and more.
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+VERSION
+    Version 0.01
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+SYNOPSIS
+      use Test::More;
+      use Test::Mojo::More;
+  
+      my $t = new Test::Mojo::More 'MyApp';
+  
+      $t->post_ok('/account/login/', form => {
+        login => 'false',
+        pass  => 123,
+      })
+        ->status_is(302)
+        ->flash_is( '/error/login' => 'Error login.' )
+        ->cookie_hasnt( 'user_id' );
 
+      $t->post_ok('account/login/', form => {
+        login => 'true',
+        pass  => 123,
+      })
+        ->status_is(302)
+        ->flash_hasnt( '/errror' )
+        ->cookie_has( 'user_id' );
 
-INSTALLATION
+      done_testing;
 
-To install this module, run the following commands:
+DESCRIPTION
+    Test::Mojo::More is an extension for the Test::Mojo which allows you to
+    test Mojo and Mojolicious applications.
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+ATTRIBUTES
+    Test::Mojo::More inherits all attributed from Test::Mojo and inplements
+    the following new ones.
 
-SUPPORT AND DOCUMENTATION
+  "dom"
+       @a = $t->dom->find('.menu li a');
 
-After installing, you can find documentation for this module with the
-perldoc command.
+    Currect DOM from transaction.
 
-    perldoc Test::Mojo::More
+METHODS
+    Test::Mojo::More inherits all method from Test::Mojo and inplements the
+    following new ones.
 
-You can also look for information at:
+  "flash_is"
+      $t = $t->flash_is( '/error', { message => 'error message' } );
+      $t = $t->flash_is( '/error/message', 'error message' );
 
-    RT, CPAN's request tracker (report bugs here)
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mojo-More
+    Check flash the given JSON Pointer with Mojo::JSON::Pointer.
 
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Test-Mojo-More
+  "flash_has"
+      $t = $t->flash_has( '/error' );
+      $t = $t->flash_has( '/error/message' );
 
-    CPAN Ratings
-        http://cpanratings.perl.org/d/Test-Mojo-More
+    Check if flash contains a value that can be identified using the given
+    JSON Pointer with Mojo::JSON::Pointer.
 
-    Search CPAN
-        http://search.cpan.org/dist/Test-Mojo-More/
+  "flash_hasnt"
+      $t = $t->flash_hasnt( '/error' );
+      $t = $t->flash_hasnt( '/error/message' );
 
+    Check if flash no contains a value that can be identified using the
+    given JSON Pointer with Mojo::JSON::Pointer
+
+  "cookie_has"
+      $t = $t->cookie_has( 'error' );
+
+    Check if cookie contains a cracker.
+
+  "cookie_hasnt"
+      $t = $t->cookie_hasnt( 'error' );
+
+    Check if cookie no contains a cookie.
+
+  "cookie_like"
+      $t = $t->cookie_like( 'error', 'fatal error' );
+
+    Check if cookie for similar match.
+
+SEE ALSO
+    Test::Mojo, Test::Mojo::Session
+
+AUTHOR
+    coolmen, "<coolmen78 at gmail.com>"
 
 LICENSE AND COPYRIGHT
+    Copyright 2013 coolmen.
 
-Copyright (C) 2013 coolmen
+    This program is distributed under the MIT (X11) License:
+    <http://www.opensource.org/licenses/mit-license.php>
 
-This program is distributed under the MIT (X11) License:
-L<http://www.opensource.org/licenses/mit-license.php>
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
 
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
