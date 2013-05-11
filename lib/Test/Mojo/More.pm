@@ -20,7 +20,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = 0.02;
+our $VERSION = 0.030_000;
 
 
 =head1 SYNOPSIS
@@ -66,9 +66,27 @@ the following new ones.
 
 Currect DOM from transaction.
 
+
+=head2 C<cookie_hashref>
+
+  $cookie = $t->cookie_hashref;
+
+Current cookies from transaction.
+
+
+=head2 C<flash_hashref>
+
+  $flases = $t->flash_hashref;
+
+Current flashes from transaction.
+
+
 =cut
 
-sub dom { shift->tx->res->dom };
+sub dom            { return shift->tx->res->dom                                                     }
+sub cookie_hashref { return { map { $_->name => $_->value } @{ $_[0]->_controller->req->cookies } } }
+sub flash_hashref  { return $_[0]->_session->{flash} || {}                                          }
+
 
 
 =head1 METHODS
@@ -91,7 +109,7 @@ sub flash_is {
 	$flash = $self->_flash($flash);
 	return $self->_test(
 		'is_deeply',
-		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
 		$value,
 		$desc || "flash exact match for JSON Pointer \"$key\"",
 	);
@@ -110,11 +128,13 @@ the given JSON Pointer with Mojo::JSON::Pointer.
 
 sub flash_has {
 	my ($self, $key, $value, $desc) = @_;
-	my ( $flash, $path ) = $self->_prepare_key($key); 
+	my ( $flash, $path ) = $self->_prepare_key($key);
+
 	$flash = $self->_flash($flash);
+
 	return $self->_test(
 		'ok',
-		!!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		!!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
 		$desc || "flash has value for JSON Pointer \"$key\"",
 	);
 }
@@ -136,7 +156,7 @@ sub flash_hasnt {
 	$flash = $self->_flash($flash);
 	return $self->_test(
 		'ok',
-		!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "/" ),
+		!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
 		$desc || "flash has no value for JSON Pointer \"$key\""
 	);	
 }
