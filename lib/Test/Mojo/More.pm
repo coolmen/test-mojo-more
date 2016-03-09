@@ -20,7 +20,7 @@ Version 0.05
 
 =cut
 
-our $VERSION = 0.050_000;
+our $VERSION = 0.060_000;
 
 
 =head1 SYNOPSIS
