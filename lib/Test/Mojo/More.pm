@@ -1,14 +1,15 @@
 package Test::Mojo::More;
 
 use Mojo::Base 'Test::Mojo';
-
-use Mojolicious::Sessions;
+use Test::More;
 use Mojo::Util qw(b64_decode b64_encode);
 use Mojo::JSON;
 use Mojo::JSON::Pointer;
-
-use Mojolicious::Controller;
 use Mojo::Message::Request;
+use Mojolicious::Controller;
+use Mojolicious::Sessions;
+
+no warnings 'utf8';
 
 =head1 NAME
 
@@ -37,7 +38,7 @@ our $VERSION = 0.050_000;
     ->status_is(302)
     ->flash_is( '/error/login' => 'Error login.' )
     ->cookie_hasnt( 'user_id' );
-
+  
   $t->post_ok('account/login/', form => {
     login => 'true',
     pass  => 123,
@@ -45,7 +46,7 @@ our $VERSION = 0.050_000;
     ->status_is(302)
     ->flash_hasnt( '/errror' )
     ->cookie_has( 'user_id' );
-
+  
   done_testing;
 
 
@@ -88,7 +89,6 @@ sub cookie_hashref { return { map { $_->name => $_->value } @{ $_[0]->_controlle
 sub flash_hashref  { return $_[0]->_session->{flash} || {}                                          }
 
 
-
 =head1 METHODS
 
 L<Test::Mojo::More>  inherits all method from L<Test::Mojo> and inplements
@@ -105,11 +105,12 @@ Check flash the given JSON Pointer with Mojo::JSON::Pointer.
 
 sub flash_is {
 	my ($self, $key, $value, $desc) = @_;
-	my ( $flash, $path ) = $self->_prepare_key($key); 
+	my ( $flash, $path ) = $self->_prepare_key($key);
 	$flash = $self->_flash($flash);
-	return $self->_test(
+
+	return $self->__test(
 		'is_deeply',
-		Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
+		_pointer( $flash, $path ? "/$path" : "" ),
 		$value,
 		$desc || "flash exact match for JSON Pointer \"$key\"",
 	);
@@ -132,9 +133,9 @@ sub flash_has {
 
 	$flash = $self->_flash($flash);
 
-	return $self->_test(
+	return $self->__test(
 		'ok',
-		!!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
+		!!_pointer($flash, $path ? "/$path" : "" ),
 		$desc || "flash has value for JSON Pointer \"$key\"",
 	);
 }
@@ -152,13 +153,13 @@ the given JSON Pointer with Mojo::JSON::Pointer
 
 sub flash_hasnt {
 	my ($self, $key, $value, $desc) = @_;
-	my ( $flash, $path ) = $self->_prepare_key($key); 
+	my ( $flash, $path ) = $self->_prepare_key($key);
 	$flash = $self->_flash($flash);
-	return $self->_test(
+	return $self->__test(
 		'ok',
-		!Mojo::JSON::Pointer->new->get( $flash, $path ? "/$path" : "" ),
+		!_pointer( $flash, $path ? "/$path" : "" ),
 		$desc || "flash has no value for JSON Pointer \"$key\""
-	);	
+	);
 }
 
 
@@ -173,7 +174,7 @@ Check if cookie contains a cracker.
 
 sub cookie_has {
 	my ($self, $cookie, $desc) = @_;
-	return $self->_test(
+	return $self->__test(
 		'ok',
 		!!$self->_cookie( $cookie ),
 		$desc || "has cookie \"$cookie\"",
@@ -192,10 +193,31 @@ Check if cookie no contains a cookie.
 # Polly wants a cracker
 sub cookie_hasnt {
 	my ($self, $cookie, $desc) = @_;
-	return $self->_test(
+	return $self->__test(
 		'ok',
 		!$self->_cookie( $cookie ),
 		$desc || "has no cookie \"$cookie\"",
+	);
+}
+
+
+sub cookie_is {
+	my ($self, $cookie, $value, $desc) = @_;
+	return $self->__test(
+		'is',
+		$self->_cookie( $cookie ),
+		$value,
+		$desc || "cookie \"$cookie\": ".($value ? "\"$value\"" : '""'),
+	);
+}
+
+sub cookie_isnt {
+	my ($self, $cookie, $value, $desc) = @_;
+	return $self->__test(
+		'isnt',
+		$self->_cookie( $cookie ),
+		$value,
+		$desc || "not cookie \"$cookie\": ".($value ? "\"$value\"" : '""'),
 	);
 }
 
@@ -210,7 +232,7 @@ Check if cookie for similar match.
 
 sub cookie_like {
 	my ($self, $cookie, $regex, $desc) = @_;
-	return $self->_test(
+	return $self->__test(
 		'like',
 		$self->_cookie( $cookie ),
 		$regex,
@@ -218,7 +240,23 @@ sub cookie_like {
 	);
 }
 
+=head2 C<cookie_unlike>
 
+  $t = $t->cookie_unlike( 'error', 'unfatal error' );
+
+Opposite of "cookies_like".
+
+=cut
+
+sub cookie_unlike {
+	my ($self, $cookie, $regex, $desc) = @_;
+	return $self->__test(
+		'unlike',
+		$self->_cookie( $cookie ),
+		$regex,
+		$desc || "cookie \"$cookie\" is not similar",
+	);
+}
 
 sub _prepare_key {
 	shift;
@@ -248,19 +286,35 @@ sub _controller {
 	$req->cookies( join "; ", map{ $_->name ."=". $_->value } @{$self->tx->res->cookies} );
 
 	# Make app && controller
-	my $app = Mojolicious->new();
-	my $c = Mojolicious::Controller->new;
-	$c->tx->req( $req );
+	my $c = Mojolicious::Controller->new(
+		tx  => Mojo::Transaction::HTTP->new( req => $req ),
+		app => Mojolicious->new(),
+	);
 
 	# XXX copy secret
-	my $secret = $app->can('secrets') || $app->can('secret');
-	$secret->( $app, [ @{ ( $self->app->can('secrets') ||  $self->app->can('secret') )->( $self->app ) } ] );
+	my $secret = $c->app->can('secrets') || $c->app->can('secret');
+	$secret->( $c->app, ( $self->app->can('secrets') || $self->app->can('secret') )->( $self->app ) );
 
 	# Init
-	$app->handler( $c );
-	$app->sessions->load( $c );
-
+	$c->app->handler( $c );
+	$c->app->sessions->load( $c );
 	$c;
+}
+
+sub _pointer {
+	my ($data, $path) = @_;
+	return Mojo::JSON::Pointer->new($data)->get($path)
+		if Mojo::JSON::Pointer->can('data');
+	return Mojo::JSON::Pointer->new->get($data, $path);
+	return 0;
+}
+
+sub __test {
+	my $self = shift;
+	return $self->_test(@_)      if $self->can('_test');
+	my $method = shift;
+	Test::More->can($method)->(@_) if Test::More->can($method);
+	$self;
 }
 
 
