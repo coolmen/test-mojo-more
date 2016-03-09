@@ -2,12 +2,11 @@ package Test::Mojo::More;
 
 use Mojo::Base 'Test::Mojo';
 use Test::More;
-use Mojo::Util qw(b64_decode b64_encode);
-use Mojo::JSON;
 use Mojo::JSON::Pointer;
 use Mojo::Message::Request;
+use Mojolicious;
 use Mojolicious::Controller;
-use Mojolicious::Sessions;
+use Mojo::Transaction::HTTP;
 
 no warnings 'utf8';
 
@@ -282,7 +281,7 @@ sub _controller {
 	my $self = shift;
 
 	# Build res cookies
-	my $req = new Mojo::Message::Request;
+	my $req = Mojo::Message::Request->new;
 	$req->cookies( join "; ", map{ $_->name ."=". $_->value } @{$self->tx->res->cookies} );
 
 	# Make app && controller
