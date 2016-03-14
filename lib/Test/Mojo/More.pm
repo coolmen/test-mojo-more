@@ -16,11 +16,11 @@ Test::Mojo::More - Test::Mojo and more.
 
 =head1 VERSION
 
-Version 0.05
+Version 0.061
 
 =cut
 
-our $VERSION = 0.060_000;
+our $VERSION = 0.061_000;
 
 
 =head1 SYNOPSIS
@@ -200,6 +200,14 @@ sub cookie_hasnt {
 }
 
 
+=head2 C<cookie_is>
+
+  $t = $t->cookie_is( $name => $value );
+
+Check cookie for exact match.
+
+=cut
+
 sub cookie_is {
 	my ($self, $cookie, $value, $desc) = @_;
 	return $self->__test(
@@ -209,6 +217,16 @@ sub cookie_is {
 		$desc || "cookie \"$cookie\": ".($value ? "\"$value\"" : '""'),
 	);
 }
+
+
+
+=head2 C<cookie_isnt>
+
+  $t = $t->cookie_isnt( $name => $value );
+
+Opposite of L</"cookie_is">
+
+=cut
 
 sub cookie_isnt {
 	my ($self, $cookie, $value, $desc) = @_;
@@ -243,7 +261,7 @@ sub cookie_like {
 
   $t = $t->cookie_unlike( 'error', 'unfatal error' );
 
-Opposite of "cookies_like".
+Opposite of L</"cookies_like">.
 
 =cut
 
