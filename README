@@ -2,7 +2,7 @@ NAME
     Test::Mojo::More - Test::Mojo and more.
 
 VERSION
-    Version 0.01
+    Version 0.061
 
 SYNOPSIS
       use Test::More;
@@ -17,7 +17,7 @@ SYNOPSIS
         ->status_is(302)
         ->flash_is( '/error/login' => 'Error login.' )
         ->cookie_hasnt( 'user_id' );
-
+  
       $t->post_ok('account/login/', form => {
         login => 'true',
         pass  => 123,
@@ -25,7 +25,7 @@ SYNOPSIS
         ->status_is(302)
         ->flash_hasnt( '/errror' )
         ->cookie_has( 'user_id' );
-
+  
       done_testing;
 
 DESCRIPTION
@@ -85,10 +85,25 @@ METHODS
 
     Check if cookie no contains a cookie.
 
+  "cookie_is"
+      $t = $t->cookie_is( $name => $value );
+
+    Check cookie for exact match.
+
+  "cookie_isnt"
+      $t = $t->cookie_isnt( $name => $value );
+
+    Opposite of "cookie_is"
+
   "cookie_like"
       $t = $t->cookie_like( 'error', 'fatal error' );
 
     Check if cookie for similar match.
+
+  "cookie_unlike"
+      $t = $t->cookie_unlike( 'error', 'unfatal error' );
+
+    Opposite of "cookies_like".
 
 SEE ALSO
     Test::Mojo, Test::Mojo::Session

@@ -4,17 +4,15 @@ Test::Mojo::More - Test::Mojo and more.
 
 # VERSION
 
-Version 0.01
+Version 0.061
 
 # SYNOPSIS
 
     use Test::More;
     use Test::Mojo::More;
     
-
     my $t = new Test::Mojo::More 'MyApp';
     
-
     $t->post_ok('/account/login/', form => {
       login => 'false',
       pass  => 123,
@@ -22,7 +20,7 @@ Version 0.01
       ->status_is(302)
       ->flash_is( '/error/login' => 'Error login.' )
       ->cookie_hasnt( 'user_id' );
-
+    
     $t->post_ok('account/login/', form => {
       login => 'true',
       pass  => 123,
@@ -30,21 +28,17 @@ Version 0.01
       ->status_is(302)
       ->flash_hasnt( '/errror' )
       ->cookie_has( 'user_id' );
-
+    
     done_testing;
-
-
 
 # DESCRIPTION
 
-[Test::Mojo::More](http://search.cpan.org/perldoc?Test::Mojo::More) is an extension for the [Test::Mojo](http://search.cpan.org/perldoc?Test::Mojo) which allows
-you to test [Mojo](http://search.cpan.org/perldoc?Mojo) and [Mojolicious](http://search.cpan.org/perldoc?Mojolicious) applications.
-
-
+[Test::Mojo::More](https://metacpan.org/pod/Test::Mojo::More) is an extension for the [Test::Mojo](https://metacpan.org/pod/Test::Mojo) which allows
+you to test [Mojo](https://metacpan.org/pod/Mojo) and [Mojolicious](https://metacpan.org/pod/Mojolicious) applications.
 
 # ATTRIBUTES
 
-[Test::Mojo::More](http://search.cpan.org/perldoc?Test::Mojo::More)  inherits all attributed from [Test::Mojo](http://search.cpan.org/perldoc?Test::Mojo) and inplements
+[Test::Mojo::More](https://metacpan.org/pod/Test::Mojo::More)  inherits all attributed from [Test::Mojo](https://metacpan.org/pod/Test::Mojo) and inplements
 the following new ones.
 
 ## `dom`
@@ -53,15 +47,11 @@ the following new ones.
 
 Currect DOM from transaction.
 
-
-
 ## `cookie_hashref`
 
     $cookie = $t->cookie_hashref;
 
 Current cookies from transaction.
-
-
 
 ## `flash_hashref`
 
@@ -69,11 +59,9 @@ Current cookies from transaction.
 
 Current flashes from transaction.
 
-
-
 # METHODS
 
-[Test::Mojo::More](http://search.cpan.org/perldoc?Test::Mojo::More)  inherits all method from [Test::Mojo](http://search.cpan.org/perldoc?Test::Mojo) and inplements
+[Test::Mojo::More](https://metacpan.org/pod/Test::Mojo::More)  inherits all method from [Test::Mojo](https://metacpan.org/pod/Test::Mojo) and inplements
 the following new ones.
 
 ## `flash_is`
@@ -111,15 +99,33 @@ Check if cookie contains a cracker.
 
 Check if cookie no contains a cookie.
 
+## `cookie_is`
+
+    $t = $t->cookie_is( $name => $value );
+
+Check cookie for exact match.
+
+## `cookie_isnt`
+
+    $t = $t->cookie_isnt( $name => $value );
+
+Opposite of ["cookie\_is"](#cookie_is)
+
 ## `cookie_like`
 
     $t = $t->cookie_like( 'error', 'fatal error' );
 
 Check if cookie for similar match.
 
+## `cookie_unlike`
+
+    $t = $t->cookie_unlike( 'error', 'unfatal error' );
+
+Opposite of ["cookies\_like"](#cookies_like).
+
 # SEE ALSO
 
-[Test::Mojo](http://search.cpan.org/perldoc?Test::Mojo), [Test::Mojo::Session](http://search.cpan.org/perldoc?Test::Mojo::Session)
+[Test::Mojo](https://metacpan.org/pod/Test::Mojo), [Test::Mojo::Session](https://metacpan.org/pod/Test::Mojo::Session)
 
 # AUTHOR
 
@@ -152,5 +158,3 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
-
-
